@@ -1,18 +1,30 @@
 #!/usr/bin/env python3
 import subprocess
 import os
+import time
 
+CACHE_TIME = 5 * 60 # seconds
 
 def get_cache_path() -> str:
     return os.path.join(os.path.expanduser("~"), ".cache", "neofetch")
 
 
-def cache_exists() -> bool:
-    return os.path.exists(get_cache_path())
+def cache_is_valid() -> bool:
+    cache_path = get_cache_path()
+
+    if not os.path.exists(cache_path):
+        return False
+
+    stat = os.stat(cache_path)
+
+    if (time.time() - stat.st_mtime) > CACHE_TIME:
+        return False
+
+    return True
 
 
 def write_cache(cache: str):
-    with open(get_cache_path(), "x") as cache_file:
+    with open(get_cache_path(), "w") as cache_file:
         cache_file.write(cache)
 
 
@@ -22,7 +34,7 @@ def read_cache() -> str:
 
 
 if __name__ == "__main__":
-    if cache_exists():
+    if cache_is_valid():
         print(read_cache())
 
     else:
